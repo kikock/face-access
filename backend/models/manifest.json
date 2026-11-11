@@ -1,0 +1,48 @@
+{
+  "model_version": "fp-irn50-v1",
+  "opset": 13,
+  "models": {
+    "detector.onnx": {
+      "sha256": "1fa1a6b80fcaa1bc47ac195251514e5fc6c5170d09101d0af443ab5da2f6a56b",
+      "input_shape": [
+        1,
+        3,
+        240,
+        320
+      ],
+      "max_abs_diff_vs_torch": 4.172325134277344e-07
+    },
+    "landmark.onnx": {
+      "sha256": "390bda28ef94f4c22658566d1fd61c3ebe5c239b4a5bb848beb36e4766ed7bdf",
+      "input_shape": [
+        1,
+        1,
+        64,
+        64
+      ],
+      "max_abs_diff_vs_torch": 1.1920928955078125e-07
+    },
+    "feature.onnx": {
+      "sha256": "514227c1da6561dd17a8187034fe196f0fc8529fde4c0f8f43bfa8998ae5567b",
+      "input_shape": [
+        1,
+        3,
+        128,
+        128
+      ],
+      "max_abs_diff_vs_torch": 4.76837158203125e-06
+    },
+    "liveness.onnx": {
+      "sha256": "f88b6d6b1dd3bf70bdb487119e872ff4a3b3742bcdcba532174a1bb2c72345db",
+      "input_shape": [
+        1,
+        3,
+        80,
+        80
+      ],
+      "scale": 2.7,
+      "max_abs_diff_vs_torch": 2.2649765014648438e-06,
+      "backbone": "MiniFASNetV2"
+    }
+  }
+}

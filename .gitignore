@@ -1,0 +1,40 @@
+# Python & 虚拟环境
+.venv/
+backend/.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+*.egg-info/
+
+# Node.js & 前端编译产物
+frontend/node_modules/
+frontend/dist/
+npm-debug.log*
+
+# 个人隐私数据与运行时产物（严禁提交本地库与抓拍人脸照片）
+backend/data/*.db
+backend/data/*.db-*
+backend/data/uploads/
+backend/data/snapshots/
+backend/models/*.bak
+deploy/rknn_convert/data/calibration/detector/
+deploy/rknn_convert/data/calibration/landmark/
+deploy/rknn_convert/data/calibration/feature/
+deploy/rknn_convert/data/calibration/*.txt
+
+# 系统、IDE 与临时文件
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+.vscode/
+.idea/
+
+# RKNN 编译过程临时图
+deploy/rknn_convert/check*.onnx
+
+# 仅向开源仓库保留 07 部署指南，其余内部过程文档不提交
+docs/*
+!docs/07_全平台部署指南_RK3588源码与Docker及多系统部署.md
+

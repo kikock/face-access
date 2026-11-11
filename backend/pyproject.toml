@@ -1,0 +1,38 @@
+[project]
+name = "kikock-face-access"
+version = "0.1.0"
+description = "单机门禁人脸识别系统（x86 一期，后续支持 RK3588）"
+requires-python = ">=3.10,<3.13"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "sqlalchemy>=2.0",
+    "pydantic>=2.7",
+    "pydantic-settings>=2.3",
+    "python-multipart>=0.0.9",
+    "pyjwt>=2.8",
+    "bcrypt>=4.1",
+    "numpy>=1.26,<2.0",
+    "opencv-python-headless>=4.9,<4.11",
+    "onnxruntime>=1.18",
+    "httpx>=0.27",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.2",
+]
+# 模型导出与一致性验证工具专用（仅开发机需要，运行时不依赖）
+export = [
+    "torch==2.4.1",
+    "onnx>=1.16",
+    "torchvision==0.19.1",
+]
+
+[tool.uv]
+default-groups = ["dev"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+

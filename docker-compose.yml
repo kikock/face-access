@@ -1,0 +1,31 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: deploy/docker/backend.Dockerfile
+    image: kikock/face-access-backend:latest
+    container_name: kikock-face-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/data:/app/data
+      - ./backend/models:/app/models
+      - ./deploy/rknn_convert/models_rknn:/app/models_rknn:ro
+    environment:
+      - TZ=Asia/Shanghai
+
+  frontend:
+    build:
+      context: .
+      dockerfile: deploy/docker/frontend.Dockerfile
+    image: kikock/face-access-frontend:latest
+    container_name: kikock-face-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    environment:
+      - TZ=Asia/Shanghai
+

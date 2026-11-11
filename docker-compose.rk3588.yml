@@ -1,0 +1,13 @@
+# RK3588 专用硬件加速叠加配置
+# 使用方式: docker compose -f docker-compose.yml -f docker-compose.rk3588.yml up -d
+services:
+  backend:
+    devices:
+      - /dev/dri:/dev/dri
+    volumes:
+      - /usr/lib/librknnrt.so:/usr/lib/librknnrt.so:ro
+    environment:
+      - FACE_BACKEND=auto
+      - RKNN_MODELS_DIR=/app/models_rknn
+    privileged: true
+

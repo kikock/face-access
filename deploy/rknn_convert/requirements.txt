@@ -1,0 +1,20 @@
+# RKNN-Toolkit2 模型转换环境依赖
+# 注意：rknn-toolkit2 需在 Linux (x86_64) 环境或 WSL2 Ubuntu 20.04/22.04 下运行
+# 官方 wheel 包可从 Rockchip 官方仓库获取：https://github.com/rockchip-linux/rknn-toolkit2
+
+# 基础数学与科学计算依赖
+numpy>=1.21.0,<1.24.0
+scipy>=1.7.0
+scikit-learn>=1.0.0
+
+# 计算机视觉与图像处理
+opencv-python>=4.5.0
+
+# ONNX 解析与推理
+onnx>=1.12.0,<1.15.0
+onnxruntime>=1.12.0
+
+# 终端交互与日志工具
+rich>=12.0.0
+tqdm>=4.64.0
+

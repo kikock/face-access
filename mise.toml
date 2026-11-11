@@ -1,0 +1,13 @@
+# mise 项目工具链配置：统一由 mise 安装与管理 Python / Node / uv
+[tools]
+python = "3.11"
+node = "22"
+uv = "latest"
+
+[env]
+# 禁止 uv 自行下载 Python，强制使用 mise 安装的解释器
+UV_PYTHON_PREFERENCE = "only-system"
+UV_PYTHON_DOWNLOADS = "never"
+# 进入项目目录时自动激活后端虚拟环境
+_.python.venv = { path = "backend/.venv", create = false }
+

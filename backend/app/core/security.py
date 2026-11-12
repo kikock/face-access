@@ -17,6 +17,16 @@ def create_access_token(subject: Union[str, Any], expires_delta: Optional[timede
     return encoded_jwt
 
 
+def decode_access_token(token: str) -> Optional[str]:
+    """解析并验证 JWT Token，成功则返回主题用户名 (sub)，失败返回 None。"""
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+        sub = payload.get("sub")
+        return str(sub) if sub else None
+    except jwt.PyJWTError:
+        return None
+
+
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
 

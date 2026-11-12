@@ -32,16 +32,17 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import api from '@/api'
 
+const route = useRoute()
 const router = useRouter()
 const formRef = ref()
 const loading = ref(false)
 
 const form = reactive({
-  username: 'admin',
+  username: (route.query.username as string) || localStorage.getItem('username') || 'admin',
   password: '',
 })
 
@@ -58,6 +59,7 @@ const handleLogin = async () => {
     try {
       const res: any = await api.post('/auth/login', form)
       localStorage.setItem('access_token', res.access_token)
+      localStorage.setItem('username', res.username || form.username)
       ElMessage.success('登录成功')
       router.push('/dashboard')
     } finally {

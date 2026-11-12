@@ -18,12 +18,58 @@ def test_health_check(client):
 
 
 def test_admin_login_and_change_pwd(client):
-    # 默认账密登录
+    # 1. 未携带 Token 禁止修改
+    unauth = client.post(
+        "/api/v1/auth/change-password",
+        json={"old_password": "admin123456", "new_password": "NewPassword123"},
+    )
+    assert unauth.status_code == 401
+
+    # 2. 默认账密登录
     res = client.post("/api/v1/auth/login", json={"username": "admin", "password": "admin123456"})
     assert res.status_code == 200
     data = res.json()
     assert "access_token" in data
+    assert data["username"] == "admin"
     assert data["must_change_password"] is True
+    headers = {"Authorization": f"Bearer {data['access_token']}"}
+
+    # 3. 校验当前登录账号 /auth/me
+    me = client.get("/api/v1/auth/me", headers=headers)
+    assert me.status_code == 200
+    assert me.json()["username"] == "admin"
+
+    # 4. 原密码错误拦截
+    bad_old = client.post(
+        "/api/v1/auth/change-password",
+        headers=headers,
+        json={"old_password": "wrong", "new_password": "NewPassword123"},
+    )
+    assert bad_old.status_code == 400
+
+    # 5. 同时修改账号名与密码
+    chg = client.post(
+        "/api/v1/auth/change-password",
+        headers=headers,
+        json={"old_password": "admin123456", "new_username": "admin_pro", "new_password": "NewPassword123"},
+    )
+    assert chg.status_code == 200
+    assert chg.json()["username"] == "admin_pro"
+    new_headers = {"Authorization": f"Bearer {chg.json()['access_token']}"}
+
+    # 6. 旧账密失效，新账密可登录
+    assert client.post("/api/v1/auth/login", json={"username": "admin", "password": "admin123456"}).status_code == 400
+    login_new = client.post("/api/v1/auth/login", json={"username": "admin_pro", "password": "NewPassword123"})
+    assert login_new.status_code == 200
+    assert login_new.json()["must_change_password"] is False
+
+    # 7. 还原默认账号以便后续幂等重复测试
+    restore = client.post(
+        "/api/v1/auth/change-password",
+        headers=new_headers,
+        json={"old_password": "NewPassword123", "new_username": "admin", "new_password": "admin123456"},
+    )
+    assert restore.status_code == 200
 
 
 def test_person_lifecycle(client):

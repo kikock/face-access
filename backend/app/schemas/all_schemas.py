@@ -11,12 +11,14 @@ class AdminLoginReq(BaseModel):
 class TokenResp(BaseModel):
     access_token: str
     token_type: str = "bearer"
+    username: str = ""
     must_change_password: bool = False
 
 
 class ChangePasswordReq(BaseModel):
     old_password: str
-    new_password: str
+    new_username: Optional[str] = None
+    new_password: Optional[str] = None
 
 
 class PersonCreate(BaseModel):

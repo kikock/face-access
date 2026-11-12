@@ -17,6 +17,7 @@ from fastapi import (
     Depends,
     File,
     Form,
+    Header,
     HTTPException,
     Response,
     UploadFile,
@@ -29,6 +30,7 @@ from app.access.runner import global_device_manager
 from app.core.config import settings
 from app.core.security import (
     create_access_token,
+    decode_access_token,
     get_password_hash,
     verify_password,
 )
@@ -75,6 +77,23 @@ def get_db():
         db.close()
 
 
+def get_current_admin(
+    authorization: Optional[str] = Header(None),
+    db: Session = Depends(get_db),
+) -> AdminUser:
+    """从 Authorization: Bearer <token> 解析当前已登录管理员账号"""
+    if not authorization or not authorization.lower().startswith("bearer "):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="未登录或登录已失效")
+    token = authorization.split(" ", 1)[1].strip()
+    username = decode_access_token(token)
+    if not username:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="登录凭证无效或已过期")
+    user = db.query(AdminUser).filter(AdminUser.username == username).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="管理员账号不存在")
+    return user
+
+
 # ==================== 1. 系统认证 ====================
 @router.post("/auth/login", response_model=TokenResp)
 def login(req: AdminLoginReq, db: Session = Depends(get_db)):
@@ -82,18 +101,67 @@ def login(req: AdminLoginReq, db: Session = Depends(get_db)):
     if not user or not verify_password(req.password, user.password_hash):
         raise HTTPException(status_code=400, detail="用户名或密码错误")
     token = create_access_token(user.username)
-    return TokenResp(access_token=token, must_change_password=user.must_change_password)
+    return TokenResp(
+        access_token=token,
+        username=user.username,
+        must_change_password=user.must_change_password,
+    )
+
+
+@router.get("/auth/me")
+def get_me(current_user: AdminUser = Depends(get_current_admin)):
+    return {
+        "username": current_user.username,
+        "must_change_password": current_user.must_change_password,
+    }
 
 
 @router.post("/auth/change-password")
-def change_password(req: ChangePasswordReq, db: Session = Depends(get_db)):
-    user = db.query(AdminUser).filter(AdminUser.username == "admin").first()
-    if not user or not verify_password(req.old_password, user.password_hash):
+def change_password(
+    req: ChangePasswordReq,
+    current_user: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """修改当前登录管理员的登录账号与/或密码"""
+    if not verify_password(req.old_password, current_user.password_hash):
         raise HTTPException(status_code=400, detail="原密码错误")
-    user.password_hash = get_password_hash(req.new_password)
-    user.must_change_password = False
+
+    new_username = (req.new_username or "").strip()
+    new_password = req.new_password or ""
+
+    changed = False
+
+    if new_username and new_username != current_user.username:
+        if len(new_username) < 3:
+            raise HTTPException(status_code=400, detail="新账号长度不能少于 3 个字符")
+        conflict = (
+            db.query(AdminUser)
+            .filter(AdminUser.username == new_username, AdminUser.id != current_user.id)
+            .first()
+        )
+        if conflict:
+            raise HTTPException(status_code=400, detail=f"账号 {new_username} 已被占用")
+        current_user.username = new_username
+        changed = True
+
+    if new_password:
+        if len(new_password) < 6:
+            raise HTTPException(status_code=400, detail="新密码长度不能少于 6 个字符")
+        current_user.password_hash = get_password_hash(new_password)
+        current_user.must_change_password = False
+        changed = True
+
+    if not changed:
+        raise HTTPException(status_code=400, detail="请输入要修改的新账号或新密码")
+
     db.commit()
-    return {"message": "密码修改成功"}
+    db.refresh(current_user)
+    new_token = create_access_token(current_user.username)
+    return {
+        "message": "账号与密码修改成功，请使用新凭据登录",
+        "username": current_user.username,
+        "access_token": new_token,
+    }
 
 
 # ==================== 2. 人员与人脸档案管理 ====================

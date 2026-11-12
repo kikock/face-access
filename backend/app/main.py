@@ -56,9 +56,8 @@ async def lifespan(app: FastAPI):
     init_db()
     db = SessionLocal()
     try:
-        # 初始化默认超级管理员 (admin / admin123456)
-        admin = db.query(AdminUser).filter(AdminUser.username == "admin").first()
-        if not admin:
+        # 仅当系统内不存在任何管理员账号时，初始化默认超级管理员 (admin / admin123456)
+        if db.query(AdminUser).count() == 0:
             admin = AdminUser(
                 username="admin",
                 password_hash=get_password_hash("admin123456"),
